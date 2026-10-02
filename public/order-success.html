@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Order Submitted | Tractor Order Platform</title>
+
+  <link rel="stylesheet" href="/styles.css">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+      color: #222;
+    }
+
+    .success-page {
+      max-width: 700px;
+      margin: 60px auto;
+      padding: 20px;
+    }
+
+    .success-card {
+      background: white;
+      border-radius: 14px;
+      padding: 35px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .success-icon {
+      width: 70px;
+      height: 70px;
+      margin: 0 auto 20px;
+      border-radius: 50%;
+      background: #e8f7ed;
+      color: #1d8a46;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 38px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .intro {
+      text-align: center;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .order-number {
+      margin: 25px 0;
+      padding: 18px;
+      background: #f1f4f7;
+      border-radius: 10px;
+      text-align: center;
+      font-size: 18px;
+    }
+
+    .steps {
+      margin-top: 30px;
+    }
+
+    .step {
+      margin-bottom: 20px;
+      padding: 18px;
+      border-left: 4px solid #333;
+      background: #fafafa;
+    }
+
+    .step strong {
+      display: block;
+      margin-bottom: 7px;
+    }
+
+    .important {
+      margin-top: 25px;
+      padding: 18px;
+      background: #fff8e6;
+      border-radius: 10px;
+      line-height: 1.6;
+    }
+
+    .upload-section {
+      margin-top: 30px;
+      padding-top: 25px;
+      border-top: 1px solid #ddd;
+    }
+
+    .upload-section h2 {
+      margin-top: 0;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      margin: 15px 0;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      background: #222;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    #uploadResult {
+      margin-top: 15px;
+      line-height: 1.5;
+    }
+
+    .success {
+      color: #188642;
+    }
+
+    .error {
+      color: #c62828;
+    }
+
+    @media (max-width: 600px) {
+      .success-page {
+        margin: 20px auto;
+      }
+
+      .success-card {
+        padding: 25px 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="success-page">
+
+    <div class="success-card">
+
+      <div class="success-icon">
+        ✓
+      </div>
+
+      <h1>Order Submitted Successfully</h1>
+
+      <p class="intro">
+        Thank you for your tractor order.
+        Your order has been received successfully.
+      </p>
+
+      <div class="order-number">
+        <strong>Order Number</strong>
+        <br><br>
+        <span id="orderNumber">Loading...</span>
+      </div>
+
+
+      <div class="steps">
+
+        <div class="step">
+          <strong>1. Check your email</strong>
+
+          We will contact you through the email address
+          you provided with instructions on how to make
+          your payment.
+        </div>
+
+
+        <div class="step">
+          <strong>2. Make your payment</strong>
+
+          Please wait for the official payment instructions
+          before sending any payment.
+        </div>
+
+
+        <div class="step">
+          <strong>3. Upload your payment confirmation</strong>
+
+          After making your payment, upload a clear
+          screenshot or payment confirmation below.
+          This helps us correctly identify your payment
+          and prepare your receipt.
+        </div>
+
+      </div>
+
+
+      <div class="important">
+
+        <strong>Important</strong>
+
+        <p>
+          Please keep your order number. You may need it
+          when communicating with us about your order.
+        </p>
+
+        <p>
+          Do not send payment to an account or payment
+          address that has not been provided through our
+          official payment instructions.
+        </p>
+
+      </div>
+      <div class="upload-section">
+
+        <h2>Upload Payment Confirmation</h2>
+
+        <p>
+          Once you have completed your payment, upload
+          your payment screenshot here.
+        </p>
+
+        <form id="uploadForm">
+
+          <input
+            type="file"
+            id="paymentScreenshot"
+            accept="image/jpeg,image/png,image/webp,application/pdf"
+            required
+          >
+
+          <button type="submit" id="uploadButton">
+            Upload Payment Confirmation
+          </button>
+
+        </form>
+
+        <div id="uploadResult"></div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+
+  <script src="/order-success.js"></script>
+
+</body>
+</html>

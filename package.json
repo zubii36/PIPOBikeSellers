@@ -1,0 +1,17 @@
+{
+  "name": "tractor-order-platform",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "axios": "^1.20.0",
+    "better-sqlite3": "^13.0.3",
+    "dotenv": "^18.0.5",
+    "express": "^5.1.0",
+    "form-data": "^4.0.6",
+    "multer": "^2.4.0"
+  }
+}

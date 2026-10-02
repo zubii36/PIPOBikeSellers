@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Place Your Order | Tractor Order Platform</title>
+
+  <link rel="stylesheet" href="/styles.css">
+
+  <style>
+    .order-page {
+      min-height: calc(100vh - 80px);
+      padding: 50px 20px 80px;
+      background: #f6f7f5;
+    }
+
+    .order-container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .order-title {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+
+    .order-title h1 {
+      margin: 0 0 10px;
+      font-size: 36px;
+    }
+
+    .order-title p {
+      margin: 0;
+      color: #666;
+      font-size: 16px;
+    }
+
+    .order-grid {
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 30px;
+      align-items: start;
+    }
+
+    .order-summary,
+    .customer-form {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 30px;
+      box-shadow: 0 5px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    .order-summary {
+      position: sticky;
+      top: 20px;
+    }
+
+    .order-summary h2,
+    .customer-form h2 {
+      margin-top: 0;
+      margin-bottom: 22px;
+    }
+
+    .tractor-summary {
+      border-top: 1px solid #eeeeee;
+      padding-top: 20px;
+    }
+
+    .tractor-summary h3 {
+      margin: 0 0 20px;
+      font-size: 22px;
+    }
+
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 13px 0;
+      border-bottom: 1px solid #eeeeee;
+    }
+
+    .summary-item span:first-child {
+      color: #666;
+    }
+
+    .summary-item strong {
+      text-align: right;
+    }
+
+    .deposit-box {
+      margin-top: 22px;
+      padding: 18px;
+      border-radius: 10px;
+      background: #f0f7f0;
+      border: 1px solid #d8ead8;
+    }
+
+    .deposit-box span {
+      display: block;
+      color: #555;
+      font-size: 14px;
+    }
+
+    .deposit-box strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 25px;
+    }
+
+    .form-introduction {
+      margin-top: -10px;
+      margin-bottom: 28px;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .form-group {
+      margin-bottom: 21px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #222;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 13px 14px;
+      border: 1px solid #d5d5d5;
+      border-radius: 8px;
+      background: #ffffff;
+      font-family: inherit;
+      font-size: 15px;
+    }
+
+    .form-group textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #2f7d32;
+      box-shadow: 0 0 0 3px rgba(47, 125, 50, 0.12);
+    }
+
+    .phone-input {
+      display: flex;
+    }
+
+    .phone-code {
+      display: flex;
+      align-items: center;
+      padding: 0 15px;
+      background: #f1f2f1;
+      border: 1px solid #d5d5d5;
+      border-right: none;
+      border-radius: 8px 0 0 8px;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .phone-input input {
+      border-radius: 0 8px 8px 0;
+    }
+
+    .field-help {
+      display: block;
+      margin-top: 6px;
+      font-size: 13px;
+      color: #777;
+    }
+
+    .address-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .security-notice {
+      display: flex;
+      gap: 10px;
+      margin: 25px 0;
+      padding: 15px;
+      border-radius: 8px;
+      background: #f6f8f6;
+      color: #555;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .submit-button {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 8px;
+      background: #2f7d32;
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .submit-button:hover {
+      background: #256528;
+    }
+
+    .submit-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    #result {
+      margin-top: 20px;
+    }.success,
+    .error {
+      padding: 15px;
+      border-radius: 8px;
+      line-height: 1.5;
+    }
+
+    .success {
+      background: #eaf7ec;
+      color: #23652a;
+    }
+
+    .error {
+      background: #fdecec;
+      color: #9b2424;
+    }
+
+    @media (max-width: 800px) {
+      .order-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .order-summary {
+        position: static;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .order-page {
+        padding: 30px 15px 60px;
+      }
+
+      .order-title h1 {
+        font-size: 28px;
+      }
+
+      .order-summary,
+      .customer-form {
+        padding: 22px;
+      }
+
+      .address-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="logo">Tractor Order Platform</a>
+    </div>
+  </header>
+
+  <main class="order-page">
+
+    <div class="order-container">
+
+      <div class="order-title">
+        <h1>Place Your Tractor Order</h1>
+        <p>Complete the information below to continue with your order.</p>
+      </div>
+
+      <div class="order-grid">
+
+        <section class="order-summary">
+
+          <h2>Order Summary</h2>
+
+          <div id="tractorSummary" class="tractor-summary">
+            Loading tractor information...
+          </div>
+
+        </section>
+
+        <section class="customer-form">
+
+          <h2>Customer Information</h2>
+
+          <p class="form-introduction">
+            Please provide accurate information so we can process
+            your order and contact you regarding delivery.
+          </p>
+
+          <form id="orderForm">
+
+            <div class="form-group">
+              <label for="fullName">Full Name</label>
+
+              <input
+                type="text"
+                id="fullName"
+                name="fullName"
+                placeholder="Enter your full name"
+                autocomplete="name"
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email Address</label>
+
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="you@example.com"
+                autocomplete="email"
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="phone">US Phone Number</label>
+
+              <div class="phone-input">
+
+                <span class="phone-code">+1</span>
+
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  placeholder="2025550123"
+                  inputmode="numeric"
+                  maxlength="10"
+                  minlength="10"
+                  pattern="[0-9]{10}"
+                  autocomplete="tel-national"
+                  required
+                >
+
+              </div>
+
+              <small class="field-help">
+                Enter exactly 10 digits. Example: 2025550123
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label for="address">Full Home / Delivery Address</label>
+
+              <textarea
+                id="address"
+                name="address"
+                placeholder="Enter your complete delivery address"
+                autocomplete="street-address"
+                required
+              ></textarea>
+            </div>
+
+            <div class="address-grid">
+
+              <div class="form-group">
+                <label for="city">City / Town</label>
+
+                <input
+                  type="text"
+                  id="city"
+                  name="city"
+                  placeholder="e.g. Houston"
+                  autocomplete="address-level2"
+                  required
+                >
+              </div>
+
+              <div class="form-group">
+                <label for="state">State</label><input
+                  type="text"
+                  id="state"
+                  name="state"
+                  placeholder="e.g. Texas"
+                  autocomplete="address-level1"
+                  required
+                >
+              </div>
+
+            </div>
+<div class="form-group">
+  <label for="paymentMethod">
+    Preferred Payment Method
+  </label>
+
+  <select id="paymentMethod" name="paymentMethod" required>
+    <option value="">Select a payment method</option>
+    <option value="Credit / Debit Card">Credit / Debit Card</option>
+    <option value="ACH Bank Transfer">ACH Bank Transfer</option>
+    <option value="Wire Transfer">Wire Transfer</option>
+    <option value="PayPal">PayPal</option>
+    <option value="Zelle">Zelle</option>
+    <option value="Cash App">Cash App</option>
+    <option value="Venmo">Venmo</option>
+  </select>
+</div>
+            <div class="security-notice">
+              <span>🔒</span>
+
+              <span>
+                Your information is used to process your tractor order,
+                arrange delivery, and contact you about your purchase.
+              </span>
+            </div>
+
+            <button
+              type="submit"
+              class="submit-button"
+              id="submitButton"
+            >
+              Continue to Submit Your Order
+            </button>
+
+          </form>
+
+          <div id="result"></div>
+
+        </section>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <script src="/order.js"></script>
+
+</body>
+</html>
