@@ -6,7 +6,7 @@ async function loadDetails() {
     return;
   }
 
-  const res = await fetch(`/api/tractors/${encodeURIComponent(id)}`);
+  const res = await fetch(`/api/bikes/${encodeURIComponent(id)}`);
   if (!res.ok) {
     box.innerHTML = '<div class="error">Tractor not found.</div>';
     return;
@@ -16,23 +16,36 @@ async function loadDetails() {
   const deposit = t.priceUSD * (t.depositPercent / 100);
 
   box.innerHTML = `
-    <section class="details">
-      <h2>${t.name}</h2>
-      <p>${t.description}</p>
-      <div class="price">$${t.priceUSD.toLocaleString()}</div>
-      <ul class="specs">
-        <li><strong>Brand:</strong> ${t.brand}</li>
-        <li><strong>Model:</strong> ${t.model}</li>
-        <li><strong>Horsepower:</strong> ${t.horsepower}</li>
-        <li><strong>Engine:</strong> ${t.engine}</li>
-        <li><strong>Transmission:</strong> ${t.transmission}</li>
-        <li><strong>Drive:</strong> ${t.drive}</li>
-        <li><strong>Weight:</strong> ${t.weight}</li>
-        <li><strong>Lift capacity:</strong> ${t.liftCapacity}</li>
-        <li><strong>Order deposit:</strong> $${deposit.toLocaleString()}</li>
-      </ul>
-      <a class="button primary" href="/order.html?id=${t.id}">Place Order</a>
-    </section>
+  <section class="details">
+  <h2>${t.name}</h2>
+  <p>${t.description}</p>
+
+  <div class="price">
+    $${t.priceUSD.toLocaleString()}
+  </div>
+
+  <ul class="specs">
+    <li><strong>Brand:</strong> ${t.brand}</li>
+    <li><strong>Model:</strong> ${t.model}</li>
+    <li><strong>Bike type:</strong> ${t.bikeType}</li>
+    <li><strong>Frame:</strong> ${t.frame}</li>
+    <li><strong>Gears:</strong> ${t.gears}</li>
+    <li><strong>Brakes:</strong> ${t.brakes}</li>
+    <li><strong>Suspension:</strong> ${t.suspension}</li>
+    <li>
+      <strong>Order deposit (6.5%):</strong>
+      $${deposit.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })}
+    </li>
+  </ul>
+
+  <a class="button primary"
+     href="/order.html?id=${encodeURIComponent(t.id)}">
+    Order This Bike
+  </a>
+</section>
   `;
 }
 loadDetails();

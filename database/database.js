@@ -21,6 +21,7 @@ db.exec(`
     order_id TEXT UNIQUE NOT NULL,
     tractor_id TEXT NOT NULL,
     tractor_name TEXT NOT NULL,
+    bike_color TEXT NOT NULL DEFAULT 'Not specified',
     tractor_price_usd REAL NOT NULL,
     deposit_percent REAL NOT NULL,
     deposit_amount_usd REAL NOT NULL,

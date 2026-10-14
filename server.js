@@ -76,17 +76,22 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 
-app.get("/api/tractors", (req, res) => {
+app.get("/api/bikes", (req, res) => {
   res.json(tractors);
 });
 
-app.get("/api/tractors/:id", (req, res) => {
-  const tractor = tractors.find(t => t.id === req.params.id);
-  if (!tractor) return res.status(404).json({ error: "Tractor not found" });
-  res.json(tractor);
+app.get("/api/bikes/:id", (req, res) => {
+  const bike = tractors.find(t => t.id === req.params.id);
+
+  if (!bike) {
+    return res.status(404).json({ error: "Bike not found" });
+  }
+
+  res.json(bike);
 });
 app.post("/api/orders", async (req, res) => {
   const {
+    bikeId,
     tractorId,
     fullName,
     email,
@@ -94,12 +99,15 @@ app.post("/api/orders", async (req, res) => {
     address,
     city,
     state,
+    bikeColor,
     paymentMethod
   } = req.body;
 
+  const selectedId = bikeId || tractorId;
+
   const tractor = tractors.find(
-    t => t.id === tractorId
-  );
+  t => t.id === selectedId
+);
 
   if (!tractor) {
     return res.status(400).json({
@@ -114,6 +122,7 @@ app.post("/api/orders", async (req, res) => {
     !address ||
     !city ||
     !state||
+    !bikeColor||
     !paymentMethod
   ) {
     return res.status(400).json({
@@ -134,7 +143,7 @@ app.post("/api/orders", async (req, res) => {
   const formattedPhone = `+1${cleanPhone}`;
 
   const orderId =
-    `TRC-${Date.now().toString().slice(-8)}`;
+    `BIKE-${Date.now().toString().slice(-8)}`;
 
   const depositAmount =
     tractor.priceUSD *
@@ -147,6 +156,7 @@ app.post("/api/orders", async (req, res) => {
         order_id,
         tractor_id,
         tractor_name,
+        bike_color,
         tractor_price_usd,
         deposit_percent,
         deposit_amount_usd,
@@ -163,6 +173,7 @@ app.post("/api/orders", async (req, res) => {
         @orderId,
         @tractorId,
         @tractorName,
+        @bikeColor,
         @tractorPrice,
         @depositPercent,
         @depositAmount,
@@ -181,6 +192,7 @@ app.post("/api/orders", async (req, res) => {
       orderId,
       tractorId: tractor.id,
       tractorName: tractor.name,
+      bikeColor,
       tractorPrice: tractor.priceUSD,
       depositPercent: tractor.depositPercent,
       depositAmount,
@@ -203,14 +215,14 @@ app.post("/api/orders", async (req, res) => {
 
     // Send Telegram notification
     const telegramMessage =` 
-🚜 <b>NEW TRACTOR ORDER</b>
+🚜 <b>NEW BIKE ORDER</b>
 
 <b>Order Number:</b> ${orderId}
 
-<b>Tractor:</b> ${tractor.name}
-<b>Tractor Price:</b> $${tractor.priceUSD.toLocaleString()}
-<b>Deposit:</b> $${depositAmount.toLocaleString()}
-
+<b>Bike:</b> ${tractor.name}
+<b>Preferred Colour:</b> ${bikeColor}
+<b>Bike Price:</b> $${tractor.priceUSD.toLocaleString()}
+<b>Deposit (6.5%):</b> $${depositAmount.toLocaleString()}
 <b>Customer Details</b>
 <b>Name:</b> ${fullName}
 <b>Email:</b> ${email}
@@ -263,6 +275,23 @@ app.post("/api/orders", async (req, res) => {
 
   }
 });
+// Add bike_color to existing orders tables if it is missing.
+const orderColumns = db.prepare(
+  "PRAGMA table_info(orders)"
+).all();
+
+const hasBikeColor = orderColumns.some(
+  column => column.name === "bike_color"
+);
+
+if (!hasBikeColor) {
+  db.exec(`
+    ALTER TABLE orders
+    ADD COLUMN bike_color TEXT NOT NULL DEFAULT 'Not specified'
+  `);
+
+  console.log("Added bike_color column to orders table.");
+}
 app.post(
   "/api/orders/payment-screenshot",
   upload.single("paymentScreenshot"),
@@ -390,172 +419,245 @@ try {
 );
 const tractors = [
   {
-    id: "jd-5075e",
-    brand: "John Deere",
-    model: "5075E",
-    name: "John Deere 5075E",
-    priceUSD: 65000,
+    id: "trek-marlin-7",
+    brand: "Trek",
+    model: "Marlin 7",
+    name: "Trek Marlin 7 Mountain Bike",
+    priceUSD: 550,
     depositPercent: 6.5,
-    horsepower: "75 hp",
-    engine: "3-cylinder diesel",
-    transmission: "PowerReverser",
-    drive: "2WD / 4WD options",
-    weight: "Approx. 3,000 kg",
-    liftCapacity: "Approx. 1,800 kg",
-    description: "Utility tractor designed for general agricultural and farm operations."
+    bikeType: "Mountain Bike",
+    frame: "Aluminum",
+    gears: "Multiple gears",
+    brakes: "Hydraulic disc brakes",
+    suspension: "Front suspension",
+    description: "Versatile mountain bike for trails, outdoor adventures and everyday riding."
   },
   {
-    id: "kubota-mx5400",
-    brand: "Kubota",
-    model: "MX5400",
-    name: "Kubota MX5400",
-    priceUSD: 45000,
+    id: "specialized-rockhopper",
+    brand: "Specialized",
+    model: "Rockhopper",
+    name: "Specialized Rockhopper",
+    priceUSD: 700,
     depositPercent: 6.5,
-    horsepower: "55 hp",
-    engine: "4-cylinder diesel",
-    transmission: "Hydrostatic / mechanical options",
-    drive: "2WD / 4WD options",
-    weight: "Approx. 2,500 kg",
-    liftCapacity: "Approx. 1,500 kg",
-    description: "Utility tractor suitable for farming, loaders and general property work."
+    bikeType: "Mountain Bike",
+    frame: "Aluminum",
+    gears: "Multiple gears",
+    brakes: "Disc brakes",
+    suspension: "Front suspension",
+    description: "Mountain bike designed for recreational trail riding and outdoor exploration."
   },
   {
-    id: "case-farmall-50a",
-    brand: "Case IH",
-    model: "Farmall 50A",
-    name: "Case IH Farmall 50A",
-    priceUSD: 45000,
+    id: "giant-talon",
+    brand: "Giant",
+    model: "Talon",
+    name: "Giant Talon Mountain Bike",
+    priceUSD: 750,
     depositPercent: 6.5,
-    horsepower: "50 hp",
-    engine: "Diesel",
-    transmission: "Mechanical",
-    drive: "2WD / 4WD options",
-    weight: "Approx. 2,300 kg",
-    liftCapacity: "Approx. 1,500 kg",
-    description: "Compact utility tractor for everyday agricultural applications."
+    bikeType: "Mountain Bike",
+    frame: "Aluminum",
+    gears: "Multiple gears",
+    brakes: "Disc brakes",
+    suspension: "Front suspension",
+    description: "Hardtail mountain bike for trails, parks and recreational cycling."
   },
   {
-    id: "nh-workmaster-70",
-    brand: "New Holland",
-    model: "Workmaster 70",
-    name: "New Holland Workmaster 70",
-    priceUSD: 45000,
+    id: "cannondale-synapse",
+    brand: "Cannondale",
+    model: "Synapse",
+    name: "Cannondale Synapse Road Bike",
+    priceUSD: 1800,
     depositPercent: 6.5,
-    horsepower: "70 hp",
-    engine: "Diesel",
-    transmission: "Mechanical",
-    drive: "2WD / 4WD options",
-    weight: "Approx. 2,800 kg",
-    liftCapacity: "Approx. 1,800 kg",
-    description: "Utility tractor built for a range of agricultural and property tasks."
+    bikeType: "Road Bike",
+    frame: "Aluminum or carbon, depending on model",
+    gears: "Multiple gears",
+    brakes: "Disc brakes",
+    suspension: "Rigid frame",
+    description: "Road bike designed for fitness rides, long-distance cycling and paved roads."
   },
   {
-    id: "mf-1755m",
-    brand: "Massey Ferguson",
-    model: "1755M",
-    name: "Massey Ferguson 1755M",
-    priceUSD: 45000,
+    id: "trek-domane",
+    brand: "Trek",
+    model: "Domane AL",
+    name: "Trek Domane AL Road Bike",
+    priceUSD: 1200,
     depositPercent: 6.5,
-    horsepower: "55 hp",
-    engine: "Diesel",
-    transmission: "Mechanical",
-    drive: "4WD",
-    weight: "Approx. 2,500 kg",
-    liftCapacity: "Approx. 1,500 kg",
-    description: "Compact utility tractor for farms and general agricultural work."
+    bikeType: "Road Bike",
+    frame: "Aluminum",
+    gears: "Multiple gears",
+    brakes: "Disc brakes",
+    suspension: "Rigid frame",
+    description: "Comfort-oriented road bike for commuting, fitness and longer rides."
   },
   {
-    id: "mahindra-4540",
-    brand: "Mahindra",
-    model: "4540",
-    name: "Mahindra 4540",
-    priceUSD: 35000,
+    id: "schwinn-phocus",
+    brand: "Schwinn",
+    model: "Phocus",
+    name: "Schwinn Phocus Road Bike",
+    priceUSD: 600,
     depositPercent: 6.5,
-    horsepower: "40 hp",
-    engine: "4-cylinder diesel",
-    transmission: "Mechanical",
-    drive: "2WD / 4WD options",
-    weight: "Approx. 2,000 kg",
-    liftCapacity: "Approx. 1,500 kg",
-    description: "Utility tractor aimed at general farm and agricultural operations."
+    bikeType: "Road Bike",
+    frame: "Aluminum",
+    gears: "Multiple gears",
+    brakes: "Model-dependent brakes",
+    suspension: "Rigid frame",
+    description: "Entry-level road bike for fitness riding and everyday paved-road cycling."
   },
   {
-    id: "fendt-300",
-    brand: "Fendt",
-    model: "300 Series",
-    name: "Fendt 300 Series",
-    priceUSD: 90000,
+    id: "redline-bmx",
+    brand: "Redline",
+    model: "Proline BMX",
+    name: "Redline BMX Bike",
+    priceUSD: 550,
     depositPercent: 6.5,
-    horsepower: "Approx. 75–110 hp",
-    engine: "Diesel",
-    transmission: "Fendt transmission options",
-    drive: "4WD",
-    weight: "Varies by configuration",
-    liftCapacity: "Varies by configuration",
-    description: "Modern utility tractor range with configurations for professional agriculture."
+    bikeType: "BMX Bike",
+    frame: "Model-dependent alloy or steel",
+    gears: "Single speed",
+    brakes: "BMX brakes",
+    suspension: "Rigid frame",
+    description: "BMX-style bicycle for track riding and recreational cycling."
   },
   {
-    id: "claas-eliost",
-    brand: "CLAAS",
-    model: "Eliot / compact range",
-    name: "CLAAS Compact Tractor Range",
-    priceUSD: 70000,
+    id: "mongoose-legend",
+    brand: "Mongoose",
+    model: "Legend",
+    name: "Mongoose BMX Bike",
+    priceUSD: 550,
     depositPercent: 6.5,
-    horsepower: "Varies",
-    engine: "Diesel",
-    transmission: "Varies",
-    drive: "4WD options",
-    weight: "Varies",
-    liftCapacity: "Varies",
-    description: "Tractor range for agricultural and farm applications."
+    bikeType: "BMX Bike",
+    frame: "Model-dependent steel or alloy",
+    gears: "Single speed",
+    brakes: "Model-dependent brakes",
+    suspension: "Rigid frame",
+    description: "BMX-style bike for recreational riding and beginner riders."
   },
   {
-    id: "deutz-fahr-5080",
-    brand: "DEUTZ-FAHR",
-    model: "5080 Series",
-    name: "DEUTZ-FAHR 5080 Series",
-    priceUSD: 75000,
+    id: "giant-escape",
+    brand: "Giant",
+    model: "Escape",
+    name: "Giant Escape Hybrid Bike",
+    priceUSD: 600,
     depositPercent: 6.5,
-    horsepower: "Approx. 80 hp",
-    engine: "Diesel",
-    transmission: "Mechanical / powershift options",
-    drive: "4WD",
-    weight: "Varies by configuration",
-    liftCapacity: "Varies by configuration",
-    description: "Utility tractor range for agricultural applications."
+    bikeType: "Hybrid Bike",
+    frame: "Aluminum",
+    gears: "Multiple gears",
+    brakes: "Model-dependent brakes",
+    suspension: "Rigid frame",
+    description: "Practical hybrid bicycle for commuting, fitness and paved paths."
   },
   {
-    id: "mccormick-x5",
-    brand: "McCormick",
-    model: "X5",
-    name: "McCormick X5",
-    priceUSD: 75000,
+    id: "rad-power-radcity",
+    brand: "Rad Power Bikes",
+    model: "RadCity",
+    name: "Rad Power RadCity Electric Bike",
+    priceUSD: 1450,
     depositPercent: 6.5,
-    horsepower: "Approx. 95–113 hp",
-    engine: "Diesel",
-    transmission: "Mechanical / powershift options",
-    drive: "4WD",
-    weight: "Varies by configuration",
-    liftCapacity: "Varies by configuration",
-    description: "Utility tractor family for agricultural and farm operations."
+bikeType: "Electric Bike",
+    frame: "Aluminum",
+    gears: "Model-dependent gearing",
+    brakes: "Model-dependent disc brakes",
+    suspension: "Model-dependent suspension",
+    description: "Electric-assist bicycle designed for commuting and everyday transportation."
   },
   {
-    id: "yanmar-ym",
-    brand: "Yanmar",
-    model: "YM Series",
-    name: "Yanmar YM Series",
-    priceUSD: 30000,
+    id: "aventon-level",
+    brand: "Aventon",
+    model: "Level",
+    name: "Aventon Level Electric Bike",
+    priceUSD: 1400,
     depositPercent: 6.5,
-    horsepower: "Varies",
-    engine: "Diesel",
-    transmission: "Mechanical",
-    drive: "2WD / 4WD options",
-    weight: "Varies by model",
-    liftCapacity: "Varies by model",
-    description: "Compact tractor range for farming and property applications."
-  }
-];
+    bikeType: "Electric Bike",
+    frame: "Aluminum",
+    gears: "Multiple gears",
+    brakes: "Hydraulic disc brakes",
+    suspension: "Front suspension",
+    description: "Electric commuter bicycle designed for everyday trips and recreational riding."
+  },
+  {
+  id: "trek-precaliber",
+  brand: "Trek",
+  model: "Precaliber",
+  name: "Trek Precaliber Kids Bike",
+  priceUSD: 300,
+  depositPercent: 6.5,
+  bikeType: "Kids' Bike",
+  frame: "Lightweight aluminum",
+  gears: "Single speed",
+  brakes: "Rim brakes",
+  suspension: "Rigid",
+  description: "A versatile children's bicycle for everyday riding."
+},
+{
+  id: "schwinn-cruiser",
+  brand: "Schwinn",
+  model: "Cruiser",
+  name: "Schwinn Cruiser Bike",
+  priceUSD: 300,
+  depositPercent: 6.5,
+  bikeType: "Cruiser Bike",
+  frame: "Steel",
+  gears: "Single speed",
+  brakes: "Coaster brake",
+  suspension: "Rigid",
+  description: "A comfortable cruiser bicycle for relaxed rides."
+},
+{
+  id: "brompton-c-line",
+  brand: "Brompton",
+  model: "C Line",
+  name: "Brompton C Line Folding Bike",
+  priceUSD: 1500,
+  depositPercent: 6.5,
+  bikeType: "Folding Bike",
+  frame: "Steel",
+  gears: "Multiple speeds",
+  brakes: "Rim brakes",
+  suspension: "Rigid",
+  description: "A compact folding bicycle designed for commuting and storage."
+},
+{
+  id: "giant-trance",
+  brand: "Giant",
+  model: "Trance",
+  name: "Giant Trance Full-Suspension Mountain Bike",
+  priceUSD: 1500,
+  depositPercent: 6.5,
+  bikeType: "Mountain Bike",
+  frame: "Aluminum",
+  gears: "Multiple speeds",
+  brakes: "Hydraulic disc brakes",
+  suspension: "Front and rear suspension",
+  description: "A trail-oriented mountain bike for off-road adventures."
+},
+{
+  id: "specialized-allez",
+  brand: "Specialized",
+  model: "Allez",
+  name: "Specialized Allez Road Bike",
+  priceUSD: 1100,
+  depositPercent: 6.5,
+  bikeType: "Road Bike",
+  frame: "Aluminum",
+  gears: "Multiple speeds",
+  brakes: "Disc brakes",
+  suspension: "Rigid",
+  description: "A road bicycle designed for paved roads and fitness riding."
+},
+{
+  id: "tern-link",
+  brand: "Tern",
+  model: "Link Folding Bike",
+  name: "Tern Link Folding Bike",
+  priceUSD: 900,
+  depositPercent: 6.5,
+  bikeType: "Folding Bike",
+  frame: "Aluminum",
+  gears: "Multiple speeds",
+  brakes: "V-brakes",
+  suspension: "Rigid",
+  description: "A practical folding bicycle for city commuting and easy storage."
+}
 
+];
 app.listen(PORT, () => {
   console.log(`Tractor Order Platform running on port ${PORT}`);
 });

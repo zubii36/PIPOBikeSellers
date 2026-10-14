@@ -1,27 +1,29 @@
 const params = new URLSearchParams(window.location.search);
-const tractorId = params.get("id");
+const bikeId = params.get("id");
 
 const tractorSummary = document.getElementById("tractorSummary");
 const orderForm = document.getElementById("orderForm");
 const result = document.getElementById("result");
 
-let selectedTractor = null;
+let selectedBike = null;
 
-// Load selected tractor
-async function loadTractor() {
+// Load selected bike
+async function loadBike() {
   try {
-    const response = await fetch("/api/tractors");
-    const tractors = await response.json();
+    const response = await fetch("/api/bikes");
+    if (!response.ok) {
+      throw new Error("Unable to load bicycles.");
+    }
 
-    selectedTractor = tractors.find(
-      tractor => tractor.id === tractorId
+    const bikes = await response.json();
+
+    selectedBike = bikes.find(
+      bike => bike.id === bikeId
     );
 
-    if (!selectedTractor) {
+    if (!selectedBike) {
       tractorSummary.innerHTML =` 
-        <div class="error">
-          Tractor not found.
-        </div>
+        <div class="error">Bike not found.</div>
       `;
 
       orderForm.style.display = "none";
@@ -29,21 +31,39 @@ async function loadTractor() {
     }
 
     const depositAmount =
-      selectedTractor.priceUSD *
-      (selectedTractor.depositPercent / 100);
+      selectedBike.priceUSD *
+      (selectedBike.depositPercent / 100);
 
     tractorSummary.innerHTML =` 
-      <h2>${selectedTractor.name}</h2>
+      <h2>${selectedBike.name}</h2>
 
       <p>
-        <strong>Price:</strong>
-        $${selectedTractor.priceUSD.toLocaleString()}
+        <strong>Type:</strong>
+        ${selectedBike.bikeType}
       </p>
 
       <p>
-        <strong>Deposit:</strong>
-        ${selectedTractor.depositPercent}%
-        ($${depositAmount.toLocaleString()})
+        <strong>Price:</strong>
+        $${selectedBike.priceUSD.toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })}
+      </p>
+
+      <p>
+        <strong>Deposit (${selectedBike.depositPercent}%):</strong>
+        $${depositAmount.toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })}
+      </p>
+
+      <p>
+        <strong>Remaining balance:</strong>
+        $${(selectedBike.priceUSD - depositAmount).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })}
       </p>
     `;
 
@@ -52,19 +72,31 @@ async function loadTractor() {
 
     tractorSummary.innerHTML =` 
       <div class="error">
-        Unable to load tractor information.
+        Unable to load bicycle information.
+        Please refresh the page and try again.
       </div>
     `;
   }
 }
 
-
-// Submit order
+// Submit bike order
 orderForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
+  if (!selectedBike) {
+    result.className = "error";
+    result.textContent =
+      "Please wait for the bicycle information to load.";
+    return;
+  }
+
   result.className = "";
   result.textContent = "Submitting your order...";
+
+  const submitButton =
+    orderForm.querySelector("button[type='submit']");
+
+  submitButton.disabled = true;
 
   const fullName =
     document.getElementById("fullName").value.trim();
@@ -83,44 +115,43 @@ orderForm.addEventListener("submit", async (event) => {
 
   const state =
     document.getElementById("state").value.trim();
-const paymentMethod =
-  document.getElementById("paymentMethod").value;
 
-  // Check required fields
+  const paymentMethod =
+    document.getElementById("paymentMethod").value;
+const bikeColor =
+  document.getElementById("bikeColor").value;
+  // Validate required fields
   if (
     !fullName ||
     !email ||
     !phone ||
     !address ||
     !city ||
-    !state||
+    !state ||
+    !bikeColor ||
     !paymentMethod
   ) {
     result.className = "error";
-
     result.textContent =
       "Please complete all customer details.";
 
+    submitButton.disabled = false;
     return;
   }
 
-
-  // Check US phone number
+  // Validate US phone number
   const cleanPhone = phone.replace(/\D/g, "");
 
   if (!/^\d{10}$/.test(cleanPhone)) {
     result.className = "error";
-
     result.textContent =
       "Please enter exactly 10 digits for the US phone number.";
 
+    submitButton.disabled = false;
     return;
   }
 
-
   try {
-
-    // Create order
     const response = await fetch("/api/orders", {
       method: "POST",
 
@@ -129,46 +160,42 @@ const paymentMethod =
       },
 
       body: JSON.stringify({
-        tractorId,
+        bikeId,
         fullName,
         email,
         phone: cleanPhone,
         address,
         city,
         state,
+        bikeColor,
         paymentMethod
       })
     });
 
-
     const body = await response.json();
-
 
     if (!response.ok) {
       throw new Error(
         body.error || "Unable to submit your order."
       );
+    }if (!body.orderId) {
+      throw new Error(
+        "The server did not return an order reference. Please contact support before trying again."
+      );
     }
 
-
-    // Successful order
+    // Redirect after successful order submission
     window.location.href =
-  `/order-success.html?orderId=${encodeURIComponent(body.orderId)}`;
-
-
-    // Disable the form after successful submission
-    orderForm.querySelector("button[type='submit']").disabled = true;
-
+      `/order-success.html?orderId=${encodeURIComponent(body.orderId)}`;
 
   } catch (error) {
-
     console.error(error);
 
     result.className = "error";
-
     result.textContent = error.message;
+
+    submitButton.disabled = false;
   }
 });
 
-
-loadTractor();
+loadBike();
