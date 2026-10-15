@@ -1,4 +1,12 @@
 node_modules/
 .env
 uploads/
+
+# SQLite database and temporary files
 database/*.db
+database/*.db-shm
+database/*.db-wal
+
+# Logs
+*.log
+get-telegram-chat-id.js
